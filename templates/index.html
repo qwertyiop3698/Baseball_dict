@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>라팍 아레나 - 스카이블루 에디션</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; display: flex; flex-direction: column; align-items: center; background-color: #ffffff; color: #333; }
+        
+        /* 상단 매출판 */
+        .revenue-board { 
+            width: 100%; max-width: 1000px; background: #f0f7ff; color: #0077ff; 
+            padding: 20px; text-align: center; margin-bottom: 40px; 
+            border-radius: 15px; border: 1px solid #cce5ff;
+            box-shadow: 0 4px 15px rgba(0, 119, 255, 0.05);
+        }
+        .total-amount { font-size: 2.8rem; font-weight: bold; color: #0056b3; }
+
+        /* 아레나 구조 */
+        .arena-container {
+            width: 1100px; padding: 50px;
+            background: #ffffff; border-radius: 400px 400px 50px 50px;
+            border: 2px solid #e1f0ff; display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 119, 255, 0.03);
+        }
+
+        .balcony-section { margin-bottom: 40px; }
+        .balcony-grid { display: grid; grid-template-columns: repeat(20, 1fr); gap: 8px; }
+
+        .main-floor {
+            display: flex; justify-content: space-between; align-items: stretch; 
+            width: 100%; gap: 20px; margin-top: 20px;
+        }
+
+        .wing-box {
+            flex: 1; background: #fafcfe; padding: 20px; border-radius: 15px;
+            border: 1px solid #ddecff; display: flex; flex-direction: column; align-items: center;
+        }
+        .wing-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+
+        .vip-standing-box {
+            flex: 1.5; background: #f0faff; border: 2px solid #87ceeb;
+            padding: 25px; border-radius: 20px; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center;
+            box-shadow: 0 4px 15px rgba(135, 206, 235, 0.2);
+        }
+        .vip-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; padding: 10px; }
+
+        .stage-frame {
+            width: 1000px; height: 100px; margin-top: 30px;
+            background: linear-gradient(to top, #4682b4, #003366);
+            border: 1px solid #002244; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* 🟦 기본 좌석 (사용 가능) */
+        .seat-btn { 
+            width: 35px; height: 35px; border: 1px solid #add8e6; border-radius: 6px;
+            cursor: pointer; transition: all 0.2s ease; color: transparent; 
+            box-sizing: border-box; background: #e0f2f7; 
+        }
+        .available:hover { 
+            background: #00bfff; 
+            transform: scale(1.15); 
+            border-color: #0099cc;
+            box-shadow: 0 0 10px rgba(0, 191, 255, 0.4);
+        }
+
+        /* 🟥 선택된 좌석 (빨간색) */
+        .booked { 
+            background: #ff4d4d !important; 
+            border: 1px solid #cc0000;
+            color: white !important; 
+            cursor: pointer;
+            opacity: 1;
+        }
+        .booked:hover {
+            background: #ff1a1a !important;
+            transform: scale(1.15);
+        }
+
+        /* ⬛ 판매 완료된 좌석 (검은색) */
+        .sold {
+            background: #2d3436 !important;
+            border: 1px solid #000000;
+            color: #636e72 !important;
+            cursor: not-allowed;
+            opacity: 1;
+        }
+
+        /* VIP 전용 스타일 */
+        .vip-btn { border-radius: 50% !important; border: 2px solid #87ceeb; background: #b0e0e6; }
+        .vip-btn.available:hover { background: #00bfff !important; }
+
+        .label { font-size: 15px; font-weight: bold; margin-bottom: 15px; text-align: center; color: #5a7d9a; letter-spacing: 1px; }
+
+        /* 결제 버튼 스타일 */
+        .payment-container { margin-top: 50px; margin-bottom: 80px; display: flex; gap: 20px; }
+        .btn-confirm {
+            padding: 20px 60px; font-size: 1.3rem; font-weight: bold; 
+            color: white; border: none; border-radius: 50px; cursor: pointer;
+            transition: all 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .btn-blue { background-color: #0077ff; }
+        .btn-green { background-color: #28a745; }
+        .btn-confirm:hover { transform: translateY(-3px); filter: brightness(1.1); }
+    </style>
+</head>
+<body>
+    <div class="revenue-board">
+        <div style="font-weight: bold; opacity: 0.7;">SKY ARENA TICKETING</div>
+        <div class="total-amount">₩ {{ "{:,}".format(total) }}</div>
+    </div>
+
+    <div class="arena-container">
+        <div class="balcony-section">
+            <div class="label">BALCONY SECTION</div>
+            <div class="balcony-grid">
+                {% if sections.get('2층좌석') %}
+                    {% for seat in sections['2층좌석'].seats %}
+                    <form action="/reserve" method="post" style="margin:0;">
+                        <input type="hidden" name="token" value="{{ seat.token }}">
+                        <button type="submit" class="seat-btn {{ seat.status }}">
+                            {% if seat.status in ['booked', 'sold'] %}✕{% else %}.{% endif %}
+                        </button>
+                    </form>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="main-floor">
+            <div class="wing-box">
+                <div class="label">LEFT WING</div>
+                <div class="wing-grid">
+                    {% if sections.get('사이드석L') %}
+                        {% for seat in sections['사이드석L'].seats %}
+                        <form action="/reserve" method="post" style="margin:0;">
+                            <input type="hidden" name="token" value="{{ seat.token }}">
+                            <button type="submit" class="seat-btn {{ seat.status }}">
+                                {% if seat.status in ['booked', 'sold'] %}✕{% else %}.{% endif %}
+                            </button>
+                        </form>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="vip-standing-box">
+                <div class="label" style="color:#4682b4;">💎 PREMIUM SKY BOX</div>
+                <div class="vip-grid">
+                    {% if sections.get('무대앞스탠딩') %}
+                        {% for seat in sections['무대앞스탠딩'].seats %}
+                        <form action="/reserve" method="post" style="margin:0;">
+                            <input type="hidden" name="token" value="{{ seat.token }}">
+                            <button type="submit" class="seat-btn vip-btn {{ seat.status }}">
+                                {% if seat.status in ['booked', 'sold'] %}✕{% else %}.{% endif %}
+                            </button>
+                        </form>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="wing-box">
+                <div class="label">RIGHT WING</div>
+                <div class="wing-grid">
+                    {% if sections.get('사이드석R') %}
+                        {% for seat in sections['사이드석R'].seats %}
+                        <form action="/reserve" method="post" style="margin:0;">
+                            <input type="hidden" name="token" value="{{ seat.token }}">
+                            <button type="submit" class="seat-btn {{ seat.status }}">
+                                {% if seat.status in ['booked', 'sold'] %}✕{% else %}.{% endif %}
+                            </button>
+                        </form>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="stage-frame">
+            <h1 style="letter-spacing: 20px; margin:0;">S K Y &nbsp; S T A G E</h1>
+        </div>
+    </div>
+
+    <div class="payment-container">
+        <button type="button" class="btn-confirm btn-blue" onclick="alert('총 {{ "{:,}".format(total) }}원 결제를 진행하시겠습니까?')">
+            ({{ "{:,}".format(total) }}) KRW 결제 안내
+        </button>
+
+        <form action="/checkout" method="post">
+            <button type="submit" class="btn-confirm btn-green">
+                최종 결제 확정하기
+            </button>
+        </form>
+    </div>
+</body>
+</html>
