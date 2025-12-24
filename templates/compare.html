@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>선수 비교 분석</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, "Malgun Gothic", sans-serif;
+            background: #f5f7fb;
+            color: #172033;
+        }
+        .page {
+            width: min(1100px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        h1 {
+            margin: 0;
+            color: #00458d;
+            font-size: 28px;
+        }
+        a {
+            color: #00458d;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: 180px 1fr 1fr;
+            gap: 14px;
+            padding: 18px;
+            background: #ffffff;
+            border: 1px solid #dde3ee;
+            border-radius: 8px;
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #556174;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        select {
+            width: 100%;
+            min-height: 44px;
+            border: 1px solid #cbd6e5;
+            border-radius: 8px;
+            padding: 0 12px;
+            background: #ffffff;
+            color: #172033;
+            font-size: 15px;
+        }
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+        .player-column {
+            background: #ffffff;
+            border: 1px solid #dde3ee;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .player-header {
+            padding: 18px;
+            background: #00458d;
+            color: #ffffff;
+        }
+        .player-name {
+            margin: 0 0 4px;
+            font-size: 22px;
+            font-weight: 800;
+        }
+        .player-team {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .stat-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            padding: 13px 18px;
+            border-top: 1px solid #eef2f7;
+        }
+        .stat-label {
+            color: #556174;
+            font-weight: 700;
+        }
+        .stat-value {
+            color: #00458d;
+            font-weight: 800;
+        }
+        .better {
+            color: #0b7a3b;
+        }
+        .summary {
+            margin-top: 18px;
+            padding: 18px;
+            background: #ffffff;
+            border: 1px solid #dde3ee;
+            border-radius: 8px;
+            line-height: 1.7;
+        }
+        @media (max-width: 760px) {
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+            .controls,
+            .compare-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="topbar">
+            <h1>선수 비교 분석</h1>
+            <a href="/">분석 화면으로 돌아가기</a>
+        </div>
+
+        <section class="controls" aria-label="선수 비교 선택">
+            <div>
+                <label for="player-type">선택 1: 유형</label>
+                <select id="player-type">
+                    <option value="pitchers">투수</option>
+                    <option value="batters">타자</option>
+                </select>
+            </div>
+            <div>
+                <label for="player-one">선택 2: 선수 1</label>
+                <select id="player-one"></select>
+            </div>
+            <div>
+                <label for="player-two">선택 2: 선수 2</label>
+                <select id="player-two"></select>
+            </div>
+        </section>
+
+        <section class="compare-grid" id="compare-grid"></section>
+        <section class="summary" id="summary"></section>
+    </div>
+
+    <script>
+        const players = {{ players | tojson }};
+        const typeSelect = document.getElementById("player-type");
+        const playerOneSelect = document.getElementById("player-one");
+        const playerTwoSelect = document.getElementById("player-two");
+        const compareGrid = document.getElementById("compare-grid");
+        const summary = document.getElementById("summary");
+
+        const statKeys = {
+            pitchers: ["ERA", "W", "SV", "HLD", "WHIP", "K", "WAR"],
+            batters: ["AVG", "HR", "RBI", "SB", "OBP", "OPS", "WAR"]
+        };
+        const statNames = {
+            ERA: "평균자책점",
+            W: "승리",
+            SV: "세이브",
+            HLD: "홀드",
+            WHIP: "WHIP",
+            K: "탈삼진",
+            WAR: "WAR",
+            AVG: "타율",
+            HR: "홈런",
+            RBI: "타점",
+            SB: "도루",
+            OBP: "출루율",
+            OPS: "OPS"
+        };
+        const lowerIsBetter = new Set(["ERA", "WHIP"]);
+
+        function currentList() {
+            return players[typeSelect.value] || [];
+        }
+
+        function optionLabel(player) {
+            return `${player.name} (${player.team})`;
+        }
+
+        function fillPlayerOptions() {
+            const list = currentList();
+            const options = list.map((player, index) => `<option value="${index}">${optionLabel(player)}</option>`).join("");
+            playerOneSelect.innerHTML = options;
+            playerTwoSelect.innerHTML = options;
+            playerOneSelect.value = "0";
+            playerTwoSelect.value = list.length > 1 ? "1" : "0";
+            renderCompare();
+        }
+
+        function isBetter(key, a, b) {
+            if (a === undefined || b === undefined || a === b) return false;
+            return lowerIsBetter.has(key) ? Number(a) < Number(b) : Number(a) > Number(b);
+        }
+
+        function formatStat(key, value) {
+            if (value === undefined) return "-";
+            return `${statNames[key] || key} ${value}`;
+        }
+
+        function getStatGap(key, a, b) {
+            const left = Number(a);
+            const right = Number(b);
+            if (!Number.isFinite(left) || !Number.isFinite(right) || left === right) return 0;
+            const base = Math.max(Math.abs(left), Math.abs(right), 1);
+            return Math.abs(left - right) / base;
+        }
+
+        function buildStrengthList(player, other, keys) {
+            return keys
+                .filter((key) => isBetter(key, player[key], other[key]))
+                .sort((a, b) => getStatGap(b, player[b], other[b]) - getStatGap(a, player[a], other[a]))
+                .slice(0, 3)
+                .map((key) => formatStat(key, player[key]));
+        }
+
+        function buildCompareSummary(playerOne, playerTwo, keys) {
+            if (playerOne === playerTwo) {
+                return "같은 선수를 선택했습니다. 서로 다른 두 선수를 선택하면 기록 차이를 비교할 수 있습니다.";
+            }
+
+            const oneStrengths = buildStrengthList(playerOne, playerTwo, keys);
+            const twoStrengths = buildStrengthList(playerTwo, playerOne, keys);
+            const closeStats = keys
+                .filter((key) => !isBetter(key, playerOne[key], playerTwo[key]) && !isBetter(key, playerTwo[key], playerOne[key]))
+                .map((key) => statNames[key] || key);
+
+            const onePart = oneStrengths.length
+                ? `${playerOne.name}은 ${oneStrengths.join(", ")}에서 강점이 보입니다.`
+                : `${playerOne.name}이 뚜렷하게 앞서는 공통 지표는 많지 않습니다.`;
+            const twoPart = twoStrengths.length
+                ? `${playerTwo.name}은 ${twoStrengths.join(", ")}에서 앞섭니다.`
+                : `${playerTwo.name}이 뚜렷하게 앞서는 공통 지표는 많지 않습니다.`;
+            const balancePart = closeStats.length
+                ? ` ${closeStats.join(", ")}은 두 선수 기록이 같거나 비교 차이가 거의 없습니다.`
+                : "";
+
+            return `${playerOne.name} vs ${playerTwo.name}: ${onePart} ${twoPart}${balancePart}`;
+        }
+
+        function renderPlayerCard(player, other) {
+            const rows = statKeys[typeSelect.value]
+                .filter((key) => player[key] !== undefined || other[key] !== undefined)
+                .map((key) => {
+                    const value = player[key] ?? "-";
+                    const className = isBetter(key, player[key], other[key]) ? "stat-value better" : "stat-value";
+                    return `
+                        <div class="stat-row">
+                            <span class="stat-label">${key}</span>
+                            <span class="${className}">${value}</span>
+                        </div>
+                    `;
+                })
+                .join("");
+
+            return `
+                <article class="player-column">
+                    <div class="player-header">
+                        <p class="player-name">${player.name}</p>
+                        <div class="player-team">${player.team}</div>
+                    </div>
+                    ${rows}
+                </article>
+            `;
+        }
+
+        function renderCompare() {
+            const list = currentList();
+            const playerOne = list[Number(playerOneSelect.value)] || list[0];
+            const playerTwo = list[Number(playerTwoSelect.value)] || list[1] || list[0];
+
+            if (!playerOne || !playerTwo) {
+                compareGrid.innerHTML = "";
+                summary.textContent = "비교할 선수가 없습니다.";
+                return;
+            }
+
+            compareGrid.innerHTML = renderPlayerCard(playerOne, playerTwo) + renderPlayerCard(playerTwo, playerOne);
+
+            const keys = statKeys[typeSelect.value].filter((key) => playerOne[key] !== undefined && playerTwo[key] !== undefined);
+            summary.textContent = buildCompareSummary(playerOne, playerTwo, keys);
+        }
+
+        typeSelect.addEventListener("change", fillPlayerOptions);
+        playerOneSelect.addEventListener("change", renderCompare);
+        playerTwoSelect.addEventListener("change", renderCompare);
+
+        fillPlayerOptions();
+    </script>
+</body>
+</html>
