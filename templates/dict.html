@@ -227,7 +227,15 @@
             sendButton.disabled = true;
 
             try {
-                const response = await fetch(`${window.location.origin}/ask`, {
+                const isStaticPage =
+                    window.location.protocol === "file:" ||
+                    window.location.port === "5500" ||
+                    window.location.hostname.endsWith("github.io");
+                if (isStaticPage) {
+                    throw new Error("Flask 서버로 접속해야 검색할 수 있습니다. python app.py를 실행한 뒤 http://127.0.0.1:5000 주소로 접속해 주세요.");
+                }
+
+                const response = await fetch("/ask", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ question })
@@ -235,7 +243,10 @@
                 const data = await readJsonResponse(response);
                 answer.innerHTML = data.answer || "답변이 비어 있습니다.";
             } catch (e) {
-                answer.textContent = `오류 발생: ${e.message}`;
+                const isFetchFailure = e instanceof TypeError && e.message === "Failed to fetch";
+                answer.textContent = isFetchFailure
+                    ? "오류 발생: Flask 서버에 연결할 수 없습니다. python app.py를 실행한 뒤 http://127.0.0.1:5000 주소로 접속해 주세요."
+                    : `오류 발생: ${e.message}`;
             } finally {
                 sendButton.disabled = false;
                 input.value = "";
