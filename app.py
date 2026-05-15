@@ -61,6 +61,7 @@ def get_term_answer(user_input):
     prompt = (
         "너는 야구용어 백과사전이야. 사용자가 묻는 야구 규칙, 기록 지표, 전술, 포지션, "
         "경기 상황 용어만 한국어로 쉽고 정확하게 설명해줘. "
+        "초심자들에게 너무 어려운 용어가 섞이면 안 되니까 야구를 처음 접하는 중,고등학생한테 말하듯이 설명해."
         "특정 선수 평가나 선수 비교 요청이면 답하지 말고 선수 비교 화면을 이용하라고 안내해. "
         "답변은 HTML 조각으로 작성하고 코드블록은 쓰지 마.\n\n"
         f"질문: {user_input}"
@@ -137,4 +138,4 @@ def ask():
 
 if __name__ == "__main__":
     print("야구용어 백과사전 서버 실행 중")
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
