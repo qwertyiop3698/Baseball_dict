@@ -29,13 +29,6 @@ Flask 기반의 야구용어 검색 웹 애플리케이션입니다.
 
 ![투수 비교 분석](docs/images/compare-pitchers.png)
 
-> 위 이미지 파일은 `docs/images/` 폴더에 다음 이름으로 저장해두면 README에서 바로 표시됩니다.
->
-> - `dictionary-main.png`
-> - `dictionary-result.png`
-> - `compare-batters.png`
-> - `compare-pitchers.png`
-
 ## 주요 기능
 
 ### 야구용어 백과사전
