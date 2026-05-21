@@ -9,25 +9,32 @@ Flask 기반의 야구용어 검색 웹 애플리케이션입니다.
 
 궁금한 야구용어를 입력하기 전 기본 화면입니다. 왼쪽에는 자주 묻는 예시 검색어가 있고, 하단의 `선수 비교 분석` 버튼으로 비교 화면에 이동할 수 있습니다.
 
-![야구용어 백과사전 메인](docs/images/dictionary-main.png)
+<img src="docs/images/dictionary-main.png" alt="야구용어 백과사전 메인" width="650">
 
 ### 2. 야구용어 검색 결과
 
 예시 검색어 또는 직접 입력한 질문을 바탕으로 Gemini API가 야구용어를 쉽게 설명합니다.
 
-![야구용어 검색 결과](docs/images/dictionary-result.png)
+<img src="docs/images/dictionary-result.png" alt="야구용어 검색 결과" width="650">
 
 ### 3. 타자 비교 분석
 
 타자 유형을 선택한 뒤 두 선수를 고르면 AVG, HR, RBI, OPS, WAR 등 주요 지표를 나란히 비교합니다. 더 우세한 기록은 초록색으로 강조됩니다.
 
-![타자 비교 분석](docs/images/compare-batters.png)
+<img src="docs/images/compare-batters.png" alt="타자 비교 분석" width="650">
 
 ### 4. 투수 비교 분석
 
 투수 유형을 선택하면 ERA, W, SV, WHIP, K, WAR 등 투수 지표를 비교할 수 있습니다.
 
-![투수 비교 분석](docs/images/compare-pitchers.png)
+<img src="docs/images/compare-pitchers.png" alt="투수 비교 분석" width="650">
+
+> 위 이미지 파일은 `docs/images/` 폴더에 다음 이름으로 저장해두면 README에서 바로 표시됩니다.
+>
+> - `dictionary-main.png`
+> - `dictionary-result.png`
+> - `compare-batters.png`
+> - `compare-pitchers.png`
 
 ## 주요 기능
 
@@ -119,5 +126,6 @@ baseball/
 
 ## 참고
 
+- `.env`는 `.gitignore`에 포함되어 Git에 올라가지 않습니다.
 - 선수 비교 데이터는 `players_data.json`을 기준으로 표시됩니다.
 - Gemini API 키가 없거나 잘못되면 용어 검색 응답에서 API 관련 오류가 표시될 수 있습니다.
