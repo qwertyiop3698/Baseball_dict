@@ -13,7 +13,7 @@ Flask 기반의 야구용어 검색 웹 애플리케이션입니다.
 
 ### 2. 야구용어 검색 결과
 
-예시 검색어 또는 직접 입력한 질문을 바탕으로 Gemini API가 야구용어를 쉽게 설명합니다.
+예시 검색어 또는 직접 입력한 질문을 바탕으로 Gemini가 야구용어를 쉽게 설명합니다.
 
 <img src="docs/images/dictionary-result.png" alt="야구용어 검색 결과" width="650">
 
