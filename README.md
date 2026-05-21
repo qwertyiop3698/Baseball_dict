@@ -119,6 +119,5 @@ baseball/
 
 ## 참고
 
-- `.env`는 `.gitignore`에 포함되어 Git에 올라가지 않습니다.
 - 선수 비교 데이터는 `players_data.json`을 기준으로 표시됩니다.
 - Gemini API 키가 없거나 잘못되면 용어 검색 응답에서 API 관련 오류가 표시될 수 있습니다.
